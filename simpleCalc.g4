@@ -1,17 +1,19 @@
 grammar simpleCalc;
 
-start   : e=expr EOF ;
+start   : (as+=assign)* e=expr EOF ;
 
-expr	: e1=expr MD e2=expr # Multiplication
-	    | e1=expr PM e2=expr # Addition
-	    | c=FLOAT     	     # Constant
-	    | x=ID		         # Variable
-	    | '(' e=expr ')'     # Parenthesis
-	    | pm=PM f=FLOAT      #SignedConstant
-	    ;
+assign : x=ID '=' e=expr  ;
 
-PM : '+' | '-';
-MD : '*' | '/';
+expr	: e1=expr OP2 e2=expr # Multiplication
+	    | e1=expr OP1 e2=expr # Addition
+	    | c=FLOAT     	      # Constant
+	    | x=ID		          # Variable
+	    | '(' e=expr ')'      # Parenthesis
+	    | op=OP1 f=FLOAT      #SignedConstant
+;
+
+OP1 : '+' | '-';
+OP2 : '*' | '/';
 
 ID    : ALPHA (ALPHA|NUM)* ;
 FLOAT : NUM+ ('.' NUM+)? ;
