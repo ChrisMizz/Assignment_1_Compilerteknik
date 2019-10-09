@@ -1,19 +1,34 @@
 grammar simpleCalc;
 
-start   : (as+=assign)* e=expr EOF ;
+start   : (as+=assign)* (e=expr)* EOF ;
 
 assign : x=ID '=' e=expr  ;
 
-expr	: e1=expr OP2 e2=expr # Multiplication
-	    | e1=expr OP1 e2=expr # Addition
-	    | c=FLOAT     	      # Constant
-	    | x=ID		          # Variable
-	    | '(' e=expr ')'      # Parenthesis
-	    | op=OP1 f=FLOAT      #SignedConstant
+/* A grammar for arithmetic expressions */
+
+cond: e1=expr '<' e2=expr
+    | e1=expr '<=' e2=expr
+    | e1=expr '>' e2=expr
+    | e1=expr '>=' e2=expr
+    | e1=expr '==' e2=expr
+    | e1=expr '!=' e2=expr
+    | e1=expr '<=' e2=expr
+    | c1=cond '||' c2=cond
+    | c1=cond '&&' c2=cond
+    |'!' '(' c1=cond ')'
+    ;
+
+expr : x=ID    	              # Variable
+     | c=FLOAT	              # Constant
+     | e1=expr op=OPE e2=expr # Multiplication
+     | e1=expr op=OP e2=expr  # Addition
+     | '(' e=expr ')'	      # Parenthesis
+     | op=OP f=FLOAT          # SignedConstant
 ;
 
-OP1 : '+' | '-';
-OP2 : '*' | '/';
+// Lexer:
+OP : '-'|'+' ;
+OPE : '*'|'/' ;
 
 ID    : ALPHA (ALPHA|NUM)* ;
 FLOAT : NUM+ ('.' NUM+)? ;
@@ -24,3 +39,4 @@ NUM   : [0-9] ;
 WHITESPACE : [ \n\t\r]+ -> skip;
 COMMENT    : '//'~[\n]*  -> skip;
 COMMENT2   : '/*' (~[*] | '*'~[/]  )*   '*/'  -> skip;
+
