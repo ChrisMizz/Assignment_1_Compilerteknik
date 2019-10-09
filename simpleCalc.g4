@@ -1,21 +1,28 @@
 grammar simpleCalc;
 
-start   : (as+=assign)* (e=expr)* EOF ;
+start   : (as+=assign)* (e=expr)* (wl += loop)* EOF ;
 
-assign : x=ID '=' e=expr  ;
+assign : x=ID '=' e=expr ';' ;
 
-/* A grammar for arithmetic expressions */
+assignments : a=assign  # Assignment
+	| e=expr # Expression
+	;
 
-cond: e1=expr '<' e2=expr
-    | e1=expr '<=' e2=expr
-    | e1=expr '>' e2=expr
-    | e1=expr '>=' e2=expr
-    | e1=expr '==' e2=expr
-    | e1=expr '!=' e2=expr
-    | e1=expr '<=' e2=expr
-    | c1=cond '||' c2=cond
-    | c1=cond '&&' c2=cond
-    |'!' '(' c1=cond ')'
+sequence : (a+=assignments )+ ;
+
+loop : 'while' '(' c=cond ')' e=sequence # While
+;
+
+cond: e1=expr '<' e2=expr  # Bigger
+    | e1=expr '<=' e2=expr # BiggerOrEqual
+    | e1=expr '>' e2=expr  # Less
+    | e1=expr '>=' e2=expr # LessOrEqual
+    | e1=expr '==' e2=expr # Equals
+    | e1=expr '!=' e2=expr # NotEqual
+    | e1=expr '<=' e2=expr # BiggerOrEqual
+    | c1=cond '||' c2=cond # Or
+    | c1=cond '&&' c2=cond # And
+    |'!' '(' c1=cond ')'   # Not
     ;
 
 expr : x=ID    	              # Variable
@@ -39,4 +46,3 @@ NUM   : [0-9] ;
 WHITESPACE : [ \n\t\r]+ -> skip;
 COMMENT    : '//'~[\n]*  -> skip;
 COMMENT2   : '/*' (~[*] | '*'~[/]  )*   '*/'  -> skip;
-
