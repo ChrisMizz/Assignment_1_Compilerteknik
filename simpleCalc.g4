@@ -1,16 +1,20 @@
 grammar simpleCalc;
 
-start   : (as+=assign)* (e=expr)* (wl += loop)* EOF ;
-
+start   : (as+=assign)* (e=expr)* (wl += loop)* (ie+=ifstatement)* EOF ;
+// Her har vi gjort så man skal slutte hver indtastning i input filen med ";"
 assign : x=ID '=' e=expr ';' ;
 
 assignments : a=assign  # Assignment
-	| e=expr # Expression
-	;
-
+	        | e1=expr # Expression
+	        ;
+// Her har vi indsat et "+" da man SKAL indtaste minimum 1 assignment for at få det til at virke
 sequence : (a+=assignments )+ ;
-
-loop : 'while' '(' c=cond ')' e=sequence # While
+// Dette if statement kan foregå på 2 måder. Den første er hvor der ingen "else" statement er, og den anden er med en "else" statement
+ifstatement : IF '('(d=cond)')' THEN e1=sequence # Ifstate
+            | IF '(' (d=cond) ')' THEN e1=sequence ELSE e2=sequence # IfElseState
+            ;
+// Loopet vil bare tage imod en cond, og en eller flere assignments
+loop : WHILE '(' d=cond ')' e=sequence # While
 ;
 
 cond: e1=expr '<' e2=expr  # Bigger
@@ -20,12 +24,13 @@ cond: e1=expr '<' e2=expr  # Bigger
     | e1=expr '==' e2=expr # Equals
     | e1=expr '!=' e2=expr # NotEqual
     | e1=expr '<=' e2=expr # BiggerOrEqual
-    | c1=cond '||' c2=cond # Or
-    | c1=cond '&&' c2=cond # And
-    |'!' '(' c1=cond ')'   # Not
+    |'!' '(' d1=cond ')'   # Not
+    | e1=cond '&&' e2=cond # And
+    | e1=cond '||' e2=cond # Or
     ;
 
-expr : x=ID    	              # Variable
+expr : d=FLOAT x=ID           # NumMultiAlpha
+     |x=ID    	              # Variable
      | c=FLOAT	              # Constant
      | e1=expr op=OPE e2=expr # Multiplication
      | e1=expr op=OP e2=expr  # Addition
@@ -36,6 +41,10 @@ expr : x=ID    	              # Variable
 // Lexer:
 OP : '-'|'+' ;
 OPE : '*'|'/' ;
+WHILE : 'while' ;
+IF : 'if' ;
+THEN : 'then' ;
+ELSE : 'else' ;
 
 ID    : ALPHA (ALPHA|NUM)* ;
 FLOAT : NUM+ ('.' NUM+)? ;
