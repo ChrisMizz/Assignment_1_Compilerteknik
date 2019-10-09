@@ -119,60 +119,158 @@ class Variable extends Expr{
 // This is parameterized over a return type "<T>" which is in our case
 // simply a Double.
 
-class Interpreter extends AbstractParseTreeVisitor<AST> implements simpleCalcVisitor<AST> {
+class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalcVisitor<Double> {
 
-    public AST visitStart(simpleCalcParser.StartContext ctx){
-	List<Assign> as=new ArrayList<Assign>();
-	
-	for (simpleCalcParser.AssignContext a:ctx.as)
-	    as.add((Assign) visit(a));
+    // An environment mapping variablenames to double values (initially empty)
+    public static HashMap<String,Double> env=new HashMap<String,Double>();
 
-	return new Start(as,(Expr) visit(ctx.e));
+    public Double visitStart(simpleCalcParser.StartContext ctx){
+        // New implementation: visit all assignments:
+        for (simpleCalcParser.AssignContext a:ctx.as)
+            visit(a);
+        return visit(ctx.e);
     };
 
-    public AST visitParenthesis(simpleCalcParser.ParenthesisContext ctx){
-	return visit(ctx.e);
-    };
-    
-    public AST visitVariable(simpleCalcParser.VariableContext ctx){
-	String varname=ctx.x.getText();
-	return new Variable(varname);
-    };
-    
-    public AST visitAddition(simpleCalcParser.AdditionContext ctx){
-	Expr e1=(Expr)visit(ctx.e1);
-	Expr e2=(Expr)visit(ctx.e2);
-	
-	if (ctx.op.getText().equals("+"))
-	    return new Addition(e1,e2);
-	else
-	    return new Subtraction(e1,e2);
+    public Double visitParenthesis(simpleCalcParser.ParenthesisContext ctx){
+        return visit(ctx.e);
     };
 
-    public AST visitMultiplication(simpleCalcParser.MultiplicationContext ctx){
-	Expr e1=(Expr)visit(ctx.e1);
-	Expr e2=(Expr)visit(ctx.e2);
-	
-	return new Multiplication(e1,e2);
+    public Double visitVariable(simpleCalcParser.VariableContext ctx){
+        // New implementation: look up the value of the variable in the environment env:
+        String varname=ctx.x.getText();
+        Double d=env.get(varname);
+        if (d==null){
+            System.err.println("Variable "+varname+" is not defined.\n");
+            System.exit(-1);
+        }
+        return d;
     };
 
-    public AST visitConstant(simpleCalcParser.ConstantContext ctx){
-	return new Constant(Double.parseDouble(ctx.c.getText())); 
+    public Double visitAddition(simpleCalcParser.AdditionContext ctx){
+        if (ctx.op.getText().equals("+"))
+            return visit(ctx.e1)+visit(ctx.e2);
+        else
+            return visit(ctx.e1)-visit(ctx.e2 );
     };
 
-    public AST visitSignedConstant(simpleCalcParser.SignedConstantContext ctx){
-	return new Constant(Double.parseDouble(ctx.getText()));
-    };
-    
-    public AST visitAssign(simpleCalcParser.AssignContext ctx){
-	
-	// New implementation: evaluate the expression and store it in the environment for the given
-	// variable name
-	String varname=ctx.x.getText();
-	Expr e=(Expr)visit(ctx.e);
-
-	return new Assign(varname,e);
+    public Double visitMultiplication(simpleCalcParser.MultiplicationContext ctx){
+        return visit(ctx.e1)*visit(ctx.e2);
     };
 
+    public Double visitConstant(simpleCalcParser.ConstantContext ctx){
+        return Double.parseDouble(ctx.c.getText());
+    };
+
+    public Double visitSignedConstant(simpleCalcParser.SignedConstantContext ctx){
+        return Double.parseDouble(ctx.getText());
+    };
+
+    public Double visitAssign(simpleCalcParser.AssignContext ctx){
+        // New implementation: evaluate the expression and store it in the environment for the given
+        // variable name
+        String varname=ctx.x.getText();
+        Double v = visit(ctx.e);
+        env.put(varname,v);
+
+        return v;
+    }
+
+    @Override
+    public Double visitAssignment(simpleCalcParser.AssignmentContext ctx) {
+        return visit(ctx.a);
+    }
+
+    @Override
+    public Double visitExpression(simpleCalcParser.ExpressionContext ctx) {
+        return visit(ctx.e);
+    }
+
+    @Override
+    public Double visitSequence(simpleCalcParser.SequenceContext ctx) {
+        for (simpleCalcParser.AssignmentsContext a : ctx.a) {
+            visit(a);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Double visitWhile(simpleCalcParser.WhileContext ctx) {
+        while(visit(ctx.c) == 1.0) {
+            visit(ctx.e);
+        }
+        return null;
+    }
+
+    @Override
+    public Double visitLessOrEqual(simpleCalcParser.LessOrEqualContext ctx) {
+        if (visit(ctx.e1) >= visit(ctx.e2)) {
+            return 1.0;
+        }
+        else return null;
+    }
+
+    @Override
+    public Double visitEquals(simpleCalcParser.EqualsContext ctx) {
+        if (visit(ctx.e1).equals(visit(ctx.e2))) {
+            return 1.0;
+        }
+        else return null;
+    }
+
+    @Override
+    public Double visitNot(simpleCalcParser.NotContext ctx) {
+        if (visit(ctx.c1) == 1.0) {
+            return null;
+        }
+        else return 1.0;
+    }
+
+    @Override
+    public Double visitBigger(simpleCalcParser.BiggerContext ctx) {
+        if (visit(ctx.e1) < visit(ctx.e2)) {
+            return 1.0;
+        }
+        else return null;
+    }
+
+    @Override
+    public Double visitNotEqual(simpleCalcParser.NotEqualContext ctx) {
+        if (!visit(ctx.e1).equals(visit(ctx.e2))) {
+            return 1.0;
+        }
+        else return null;
+    }
+
+    @Override
+    public Double visitOr(simpleCalcParser.OrContext ctx) {
+        if (visit(ctx.c1)== 1.0 || visit(ctx.c2) == 1.0) {
+            return 1.0;
+        }
+        else return null;
+    }
+
+    @Override
+    public Double visitAnd(simpleCalcParser.AndContext ctx) {
+        if (visit(ctx.c1)== 1.0 && visit(ctx.c2) == 1.0) {
+            return 1.0;
+        }
+        else return null;
+    }
+
+    @Override
+    public Double visitBiggerOrEqual(simpleCalcParser.BiggerOrEqualContext ctx) {
+        if (visit(ctx.e1) <= visit(ctx.e2)) {
+            return 1.0;
+        }
+        else return null;
+    }
+
+    @Override
+    public Double visitLess(simpleCalcParser.LessContext ctx) {
+        if (visit(ctx.e1) > visit(ctx.e2)) {
+            return 1.0;
+        }
+        else return null;
+    }
 }
-
