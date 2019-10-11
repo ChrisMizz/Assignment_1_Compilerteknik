@@ -32,7 +32,7 @@ public class main {
         simpleCalcParser parser = new simpleCalcParser(tokens);
 
         // and parse anything from the grammar for "start"
-        ParseTree parseTree = parser.start();
+        ParseTree parseTree = parser.simpleCalcLanguage();
 
         // Construct an interpreter and run it on the parse tree
         Interpreter interpreter = new Interpreter();
@@ -52,23 +52,156 @@ class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalc
     // An environment mapping variablenames to double values (initially empty)
     public static HashMap<String, Double> env = new HashMap<String, Double>();
 
-    public Double visitStart(simpleCalcParser.StartContext ctx) {
-        // New implementation: visit all assignments:
-        for (simpleCalcParser.AssignContext a : ctx.as)
+
+    @Override
+    public Double visitSimpleCalcLanguage(simpleCalcParser.SimpleCalcLanguageContext ctx) {
+        for (simpleCalcParser.CommandsContext a : ctx.cm)
             visit(a);
+        for (simpleCalcParser.While_loopContext b : ctx.wl){
+            visit(b);
+        }
+        for(simpleCalcParser.If_statementsContext c : ctx.is){
+            visit(c);
+        }
         return visit(ctx.e);
     }
 
-    ;
+    @Override
+    public Double visitWhile(simpleCalcParser.WhileContext ctx) {
+        while (visit(ctx.cond) == 1.0) {
+            visit(ctx.ex);
+        }
+        return null;
+    }
 
+
+    @Override
+    public Double visitIfelsestate(simpleCalcParser.IfelsestateContext ctx) {
+        if(visit(ctx.cond) == 1.0) {
+            visit(ctx.ex);
+        } else {
+            visit(ctx.eSecond);
+        }
+        return null;
+    }
+
+
+    @Override
+    public Double visitCommands(simpleCalcParser.CommandsContext ctx) {
+        String varname = ctx.x.getText();
+        Double v = visit(ctx.e);
+        env.put(varname, v);
+
+        return v;
+    }
+
+    @Override
+    public Double visitAsFirst(simpleCalcParser.AsFirstContext ctx) {
+        return visit(ctx.com);
+    }
+
+    @Override
+    public Double visitExpFirst(simpleCalcParser.ExpFirstContext ctx) {
+        return visit(ctx.ex);
+    }
+
+
+    @Override
+    public Double visitFunctionlist(simpleCalcParser.FunctionlistContext ctx) {
+        for (simpleCalcParser.FunctionContext com : ctx.com){
+            visit(com);
+        }
+        return null;
+    }
+
+    @Override
+    public Double visitLessOrEqual(simpleCalcParser.LessOrEqualContext ctx) {
+        if (visit(ctx.eFirst) >= visit(ctx.eSecond)) {
+            return 1.0;
+        } else return 0.0;
+    }
+
+    @Override
+    public Double visitEquals(simpleCalcParser.EqualsContext ctx) {
+        if (visit(ctx.eFirst).equals(visit(ctx.eSecond))) {
+            return 1.0;
+        } else return 0.0;
+    }
+
+    @Override
+    public Double visitNot(simpleCalcParser.NotContext ctx) {
+        if (visit(ctx.cond) == 1.0) {
+            return 0.0;
+        } else return 1.0;
+    }
+
+    @Override
+    public Double visitBigger(simpleCalcParser.BiggerContext ctx) {
+        if (visit(ctx.eFirst) < visit(ctx.eSecond)) {
+            return 1.0;
+        } else return 0.0;
+    }
+
+    @Override
+    public Double visitNotEqual(simpleCalcParser.NotEqualContext ctx) {
+        if (!visit(ctx.eFirst).equals(visit(ctx.eSecond))) {
+            return 1.0;
+        } else return null;
+    }
+
+    @Override
+    public Double visitOr(simpleCalcParser.OrContext ctx) {
+        if (visit(ctx.eFirst) == 1.0 || visit(ctx.eSecond) == 1.0) {
+            return 1.0;
+        } else return 0.0;
+    }
+
+    @Override
+    public Double visitAnd(simpleCalcParser.AndContext ctx) {
+        if (visit(ctx.eFirst) == 1.0 && visit(ctx.eSecond) == 1.0) {
+            return 1.0;
+        } else return 0.0;
+    }
+
+    @Override
+    public Double visitBiggerOrEqual(simpleCalcParser.BiggerOrEqualContext ctx) {
+        if (visit(ctx.eFirst) <= visit(ctx.eSecond)) {
+            return 1.0;
+        } else return 0.0;
+    }
+
+    @Override
+    public Double visitLess(simpleCalcParser.LessContext ctx) {
+        if (visit(ctx.eFirst) > visit(ctx.eSecond)) {
+            return 1.0;
+        } else return 0.0;
+    }
+
+    @Override
     public Double visitParenthesis(simpleCalcParser.ParenthesisContext ctx) {
         return visit(ctx.e);
     }
 
-    ;
+    @Override
+    public Double visitMultiplication(simpleCalcParser.MultiplicationContext ctx) {
+        if (ctx.op.getText().equals("*"))
+            return visit(ctx.eFirst) * visit(ctx.eSecond);
+        else
+            return visit(ctx.eFirst) / visit(ctx.eSecond);
+    }
 
+    @Override
+    public Double visitAddition(simpleCalcParser.AdditionContext ctx) {
+        if (ctx.op.getText().equals("+"))
+            return visit(ctx.eFirst) + visit(ctx.eSecond);
+        else
+            return visit(ctx.eFirst) - visit(ctx.eSecond);
+
+    }
+
+
+    @Override
     public Double visitVariable(simpleCalcParser.VariableContext ctx) {
-        // New implementation: look up the value of the variable in the environment env:
         String varname = ctx.x.getText();
         Double d = env.get(varname);
         if (d == null) {
@@ -78,152 +211,13 @@ class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalc
         return d;
     }
 
-    ;
-
-    public Double visitAddition(simpleCalcParser.AdditionContext ctx) {
-        if (ctx.op.getText().equals("+"))
-            return visit(ctx.e1) + visit(ctx.e2);
-        else
-            return visit(ctx.e1) - visit(ctx.e2);
-    }
-
-    ;
-
-    public Double visitMultiplication(simpleCalcParser.MultiplicationContext ctx) {
-        if (ctx.op.getText().equals("*"))
-            return visit(ctx.e1) * visit(ctx.e2);
-        else
-            return visit(ctx.e1) / visit(ctx.e2);
-    }
-    ;
-
+    @Override
     public Double visitConstant(simpleCalcParser.ConstantContext ctx) {
         return Double.parseDouble(ctx.c.getText());
     }
 
-    ;
-
+    @Override
     public Double visitSignedConstant(simpleCalcParser.SignedConstantContext ctx) {
         return Double.parseDouble(ctx.getText());
-    }
-
-    ;
-
-    public Double visitAssign(simpleCalcParser.AssignContext ctx) {
-        // New implementation: evaluate the expression and store it in the environment for the given
-        // variable name
-        String varname = ctx.x.getText();
-        Double v = visit(ctx.e);
-        env.put(varname, v);
-
-        return v;
-    }
-
-    @Override
-    public Double visitAssignment(simpleCalcParser.AssignmentContext ctx) {
-        return visit(ctx.a);
-    }
-
-    @Override
-    public Double visitExpression(simpleCalcParser.ExpressionContext ctx) {
-        return visit(ctx.e);
-    }
-
-    @Override
-    public Double visitSequence(simpleCalcParser.SequenceContext ctx) {
-        for (simpleCalcParser.AssignmentsContext a : ctx.a) {
-            visit(a);
-        }
-
-        return null;
-    }
-
-    @Override
-    public Double visitIfstate(simpleCalcParser.IfstateContext ctx) {
-        if(visit(ctx.c) == 1.0) {
-            visit(ctx.e1);
-        }
-        return null;
-    }
-
-    @Override
-    public Double visitIfElseState(simpleCalcParser.IfElseStateContext ctx) {
-        if(visit(ctx.c) == 1.0) {
-            visit(ctx.e1);
-        }else {
-            visit(ctx.e2);
-        }
-        return null;
-    }
-
-    @Override
-    public Double visitWhile(simpleCalcParser.WhileContext ctx) {
-        while (visit(ctx.c) == 1.0) {
-            visit(ctx.e);
-        }
-        return null;
-    }
-
-    @Override
-    public Double visitLessOrEqual(simpleCalcParser.LessOrEqualContext ctx) {
-        if (visit(ctx.e1) >= visit(ctx.e2)) {
-            return 1.0;
-        } else return null;
-    }
-
-    @Override
-    public Double visitEquals(simpleCalcParser.EqualsContext ctx) {
-        if (visit(ctx.e1).equals(visit(ctx.e2))) {
-            return 1.0;
-        } else return null;
-    }
-
-    @Override
-    public Double visitNot(simpleCalcParser.NotContext ctx) {
-        if (visit(ctx.c1) == 1.0) {
-            return null;
-        } else return 1.0;
-    }
-
-    @Override
-    public Double visitBigger(simpleCalcParser.BiggerContext ctx) {
-        if (visit(ctx.e1) < visit(ctx.e2)) {
-            return 1.0;
-        } else return null;
-    }
-
-    @Override
-    public Double visitNotEqual(simpleCalcParser.NotEqualContext ctx) {
-        if (!visit(ctx.e1).equals(visit(ctx.e2))) {
-            return 1.0;
-        } else return null;
-    }
-
-    @Override
-    public Double visitOr(simpleCalcParser.OrContext ctx) {
-        if (visit(ctx.c1) == 1.0 || visit(ctx.c2) == 1.0) {
-            return 1.0;
-        } else return null;
-    }
-
-    @Override
-    public Double visitAnd(simpleCalcParser.AndContext ctx) {
-        if (visit(ctx.c1) == 1.0 && visit(ctx.c2) == 1.0) {
-            return 1.0;
-        } else return null;
-    }
-
-    @Override
-    public Double visitBiggerOrEqual(simpleCalcParser.BiggerOrEqualContext ctx) {
-        if (visit(ctx.e1) <= visit(ctx.e2)) {
-            return 1.0;
-        } else return null;
-    }
-
-    @Override
-    public Double visitLess(simpleCalcParser.LessContext ctx) {
-        if (visit(ctx.e1) > visit(ctx.e2)) {
-            return 1.0;
-        } else return null;
     }
 }
