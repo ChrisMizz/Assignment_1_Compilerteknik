@@ -57,18 +57,16 @@ class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalc
     public Double visitSimpleCalcLanguage(simpleCalcParser.SimpleCalcLanguageContext ctx) {
         for (simpleCalcParser.CommandsContext a : ctx.cm)
             visit(a);
-        for (simpleCalcParser.While_loopContext b : ctx.wl){
+        for (simpleCalcParser.While_loopContext b : ctx.wl)
             visit(b);
-        }
-        for(simpleCalcParser.If_statementsContext c : ctx.is){
+        for(simpleCalcParser.If_statementsContext c : ctx.is)
             visit(c);
-        }
         return visit(ctx.e);
     }
 
     @Override
     public Double visitWhile(simpleCalcParser.WhileContext ctx) {
-        while (visit(ctx.cond) == 1.0) {
+        while (visit(ctx.cond) == 1) {
             visit(ctx.ex);
         }
         return null;
@@ -77,7 +75,7 @@ class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalc
 
     @Override
     public Double visitIfelsestate(simpleCalcParser.IfelsestateContext ctx) {
-        if(visit(ctx.cond) == 1.0) {
+        if(visit(ctx.cond) == 1) {
             visit(ctx.ex);
         } else {
             visit(ctx.eSecond);
@@ -116,21 +114,21 @@ class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalc
 
     @Override
     public Double visitLessOrEqual(simpleCalcParser.LessOrEqualContext ctx) {
-        if (visit(ctx.eFirst) >= visit(ctx.eSecond)) {
+        if (visit(ctx.eFirst) >= visit(ctx.eSecond))
             return 1.0;
-        } else return 0.0;
+        return 0.0;
     }
 
     @Override
     public Double visitEquals(simpleCalcParser.EqualsContext ctx) {
-        if (visit(ctx.eFirst).equals(visit(ctx.eSecond))) {
+        if (visit(ctx.eFirst).equals(visit(ctx.eSecond)))
             return 1.0;
-        } else return 0.0;
+        return 0.0;
     }
 
     @Override
     public Double visitNot(simpleCalcParser.NotContext ctx) {
-        if (visit(ctx.cond) == 1.0) {
+        if (visit(ctx.cond) == 1) {
             return 0.0;
         } else return 1.0;
     }
@@ -151,14 +149,14 @@ class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalc
 
     @Override
     public Double visitOr(simpleCalcParser.OrContext ctx) {
-        if (visit(ctx.eFirst) == 1.0 || visit(ctx.eSecond) == 1.0) {
+        if (visit(ctx.eFirst) == 1 || visit(ctx.eSecond) == 1) {
             return 1.0;
         } else return 0.0;
     }
 
     @Override
     public Double visitAnd(simpleCalcParser.AndContext ctx) {
-        if (visit(ctx.eFirst) == 1.0 && visit(ctx.eSecond) == 1.0) {
+        if (visit(ctx.eFirst) == 1 && visit(ctx.eSecond) == 1) {
             return 1.0;
         } else return 0.0;
     }
