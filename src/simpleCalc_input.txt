@@ -1,0 +1,26 @@
+// HUSK at udkommentere det som ikke skal kører!
+
+// Dette tester en sequence af commands.
+//x=7*3;
+//y=x*2;
+//z=x-y;
+//z*-2
+
+// Disse bruges til at definere nogle variabler så de kan bruges til while eller if-else statement
+x=7;
+y=0;
+z=-2;
+q=24;
+// Her tager den et while statement
+while(q<y) y=y+6; x=x+z;
+
+// Her kører den et if statement
+//if(q==24) x=65; y=2; z=20; q=0;
+
+// Her kører den et if-else statement
+//if(x!=5) x=1; y=2; z=3; q=4; else x=100; y=100; z=100; q=100;
+
+if(4==4 && 5==4)  x=12; y=22; z=32; q=42; else x=1020; y=1020; z=1020; q=1020;
+
+// Dette er hvad den vil printe ud i terminalen
+x
