@@ -96,12 +96,12 @@ class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalc
     }
 
     @Override
-    public Double visitAsFirst(simpleCalcParser.AsFirstContext ctx) {
+    public Double visitComFunction(simpleCalcParser.ComFunctionContext ctx) {
         return visit(ctx.com);
     }
 
     @Override
-    public Double visitExpFirst(simpleCalcParser.ExpFirstContext ctx) {
+    public Double visitExFunction(simpleCalcParser.ExFunctionContext ctx) {
         return visit(ctx.ex);
     }
 
