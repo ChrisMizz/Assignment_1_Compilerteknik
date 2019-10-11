@@ -113,14 +113,14 @@ class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalc
     }
 
     @Override
-    public Double visitLessOrEqual(simpleCalcParser.LessOrEqualContext ctx) {
+    public Double visitLesserEqual(simpleCalcParser.LesserEqualContext ctx) {
         if (visit(ctx.eFirst) >= visit(ctx.eSecond))
             return 1.0;
         return 0.0;
     }
 
     @Override
-    public Double visitEquals(simpleCalcParser.EqualsContext ctx) {
+    public Double visitEqual(simpleCalcParser.EqualContext ctx) {
         if (visit(ctx.eFirst).equals(visit(ctx.eSecond)))
             return 1.0;
         return 0.0;
@@ -134,7 +134,7 @@ class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalc
     }
 
     @Override
-    public Double visitBigger(simpleCalcParser.BiggerContext ctx) {
+    public Double visitGreater(simpleCalcParser.GreaterContext ctx) {
         if (visit(ctx.eFirst) < visit(ctx.eSecond)) {
             return 1.0;
         } else return 0.0;
@@ -162,14 +162,14 @@ class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalc
     }
 
     @Override
-    public Double visitBiggerOrEqual(simpleCalcParser.BiggerOrEqualContext ctx) {
+    public Double visitGreaterEqual(simpleCalcParser.GreaterEqualContext ctx) {
         if (visit(ctx.eFirst) <= visit(ctx.eSecond)) {
             return 1.0;
         } else return 0.0;
     }
 
     @Override
-    public Double visitLess(simpleCalcParser.LessContext ctx) {
+    public Double visitLesser(simpleCalcParser.LesserContext ctx) {
         if (visit(ctx.eFirst) > visit(ctx.eSecond)) {
             return 1.0;
         } else return 0.0;
@@ -181,7 +181,7 @@ class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalc
     }
 
     @Override
-    public Double visitMultiplication(simpleCalcParser.MultiplicationContext ctx) {
+    public Double visitMultiDivi(simpleCalcParser.MultiDiviContext ctx) {
         if (ctx.op.getText().equals("*"))
             return visit(ctx.eFirst) * visit(ctx.eSecond);
         else
@@ -189,7 +189,7 @@ class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalc
     }
 
     @Override
-    public Double visitAddition(simpleCalcParser.AdditionContext ctx) {
+    public Double visitAddiSub(simpleCalcParser.AddiSubContext ctx) {
         if (ctx.op.getText().equals("+"))
             return visit(ctx.eFirst) + visit(ctx.eSecond);
         else
