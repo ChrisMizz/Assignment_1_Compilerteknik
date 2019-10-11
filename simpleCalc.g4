@@ -6,8 +6,8 @@ simpleCalcLanguage  : (cm+=commands)* (wl+=while_loop)* (is+=if_statements)* e=e
 commands            : x=ID EQUALS e=expr SEMICOLON
                     ;
 
-function            : com=commands                                                          #AsFirst
-                    | ex=expr                                                               #ExpFirst
+function            : com=commands                                                          #ComFunction
+                    | ex=expr                                                               #ExFunction
                     ;
 
 functionlist        : (com+=function)*
